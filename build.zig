@@ -1,12 +1,17 @@
-const Builder = @import("std").build.Builder;
+
 const builtin = @import("builtin");
+const std     = @import("std");
+
+const Builder = std.build.Builder;
+const Step = std.build.Step;
 
 pub fn build(b: &Builder) void {
-    addBenchmark(b, "bench-inline");
-    addBenchmark(b, "bench-no-inline");
+    const run_all = b.step("run-all", "Run all benchmarks");
+    addBenchmark(b, run_all, "bench-inline");
+    addBenchmark(b, run_all, "bench-no-inline");
 }
 
-fn addBenchmark(b: &Builder, comptime name: []const u8) void {
+fn addBenchmark(b: &Builder, run_all_step: &Step, comptime name: []const u8) void {
     const file_name = name ++ ".zig";
     const debug_obj = b.addObject("debug-" ++ name, file_name);
     const safe_obj  = b.addObject("safe-"  ++ name, file_name);
@@ -47,4 +52,5 @@ fn addBenchmark(b: &Builder, comptime name: []const u8) void {
     run.dependOn(&run_debug_bench.step);
     run.dependOn(&run_safe_bench.step);
     run.dependOn(&run_fast_bench.step);
+    run_all_step.dependOn(run);
 }

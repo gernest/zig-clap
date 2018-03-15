@@ -4,14 +4,14 @@
 
 static void BM_parse(benchmark::State& state) {
   for (auto _ : state) {
-    benchmark::DoNotOptimize(parse());
+    benchmark::DoNotOptimize(Benchmark_parse());
   }
 }
 BENCHMARK(BM_parse);
 
 static void BM_help(benchmark::State& state) {
   for (auto _ : state) {
-      help();
+      Benchmark_help();
   }
 }
 BENCHMARK(BM_help);

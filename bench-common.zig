@@ -58,7 +58,7 @@ pub const ManyFields = extern struct {
     pub fn zFromStr(many: &ManyFields, str: []const u8) !void { many.z = try fmt.parseInt(u8, str, 10); }
 };
 
-pub const args = [][]const u8 {
+const args = [][]const u8 {
     "-e",      "1",
     "-a",      "1",
     "--the-c", "3",
@@ -87,7 +87,7 @@ pub const args = [][]const u8 {
     "-y",      "1",
 };
 
-pub fn genOptions(comptime Op: type) []const Op {
+fn genOptions(comptime Op: type) []const Op {
     return []Op {
         Op.init(ManyFields.aFromStr)
             .setHelp("The 'a' value")
@@ -233,7 +233,7 @@ pub fn genOptions(comptime Op: type) []const Op {
     };
 }
 
-pub const NullOutStream = struct {
+const NullOutStream = struct {
     stream: Stream,
 
     pub const Stream = io.OutStream(error{T});
@@ -248,3 +248,24 @@ pub const NullOutStream = struct {
 
     fn writeFn(out_stream: &Stream, bytes: []const u8) (error{T}!void) { }
 };
+
+pub fn exportBenchmark(comptime file_name: []const u8) void {
+    const package = @import(file_name);
+    const Benchmark = struct {
+        const default : ManyFields = undefined;
+        const ParseErr = @typeOf(ManyFields.rFromStr).ReturnType.ErrorSet;
+        const Op = package.Option(ManyFields, ParseErr);
+        const Clap = package.Parser(ManyFields, ParseErr, default, comptime genOptions(Op));
+
+        pub export fn parse() ManyFields {
+            return Clap.parse(args) catch unreachable;
+        }
+
+        pub export fn help() void {
+            var nul_file_stream = NullOutStream.init();
+            var nul_stream = &nul_file_stream.stream;
+
+            Clap.help(nul_stream) catch unreachable;
+        }
+    };
+}

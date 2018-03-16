@@ -249,7 +249,7 @@ const NullOutStream = struct {
     fn writeFn(out_stream: &Stream, bytes: []const u8) (error{T}!void) { }
 };
 
-pub fn exportBenchmark(comptime file_name: []const u8) void {
+pub fn exportParseBenchmark(comptime file_name: []const u8, comptime fn_prefix: []const u8) void {
     const package = @import(file_name);
     const Benchmark = struct {
         const default : ManyFields = undefined;
@@ -257,15 +257,31 @@ pub fn exportBenchmark(comptime file_name: []const u8) void {
         const Op = package.Option(ManyFields, ParseErr);
         const Clap = package.Parser(ManyFields, ParseErr, default, comptime genOptions(Op));
 
-        pub export fn parse() ManyFields {
+        pub extern fn parse() ManyFields {
             return Clap.parse(args) catch unreachable;
         }
+    };
 
-        pub export fn help() void {
+    @export(fn_prefix ++ "_parse", Benchmark.parse, strong_linkage);
+}
+
+
+pub fn exporHelpBenchmark(comptime file_name: []const u8, comptime fn_prefix: []const u8) void {
+    const package = @import(file_name);
+    const Benchmark = struct {
+        const default : ManyFields = undefined;
+        const ParseErr = @typeOf(ManyFields.rFromStr).ReturnType.ErrorSet;
+        const Op = package.Option(ManyFields, ParseErr);
+        const Clap = package.Parser(ManyFields, ParseErr, default, comptime genOptions(Op));
+
+        pub extern fn help() void {
             var nul_file_stream = NullOutStream.init();
             var nul_stream = &nul_file_stream.stream;
 
             Clap.help(nul_stream) catch unreachable;
         }
     };
+
+    const strong_linkage = @import("builtin").GlobalLinkage.Strong;
+    @export(fn_prefix ++ "_help", Benchmark.help, strong_linkage);
 }

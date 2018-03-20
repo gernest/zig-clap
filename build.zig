@@ -2,6 +2,8 @@
 const builtin = @import("builtin");
 const std     = @import("std");
 
+const fmt = std.fmt;
+
 const Builder = std.build.Builder;
 const Step = std.build.Step;
 
@@ -28,10 +30,10 @@ pub fn build(b: &Builder) void {
     }
 
     inline for (benchmarks) |bench| {
-        const file_name = "zig-src/" ++ bench ++ ".zig";
-        const debug_obj = b.addObject("debug-" ++ bench, file_name);
-        const safe_obj  = b.addObject("safe-"  ++ bench, file_name);
-        const fast_obj  = b.addObject("fast-"  ++ bench, file_name);
+        const path = fmt.allocPrint(b.allocator, "zig-src/{}.zig", bench) catch unreachable;
+        const debug_obj = b.addObject(fmt.allocPrint(b.allocator, "debug-{}", bench) catch unreachable, path);
+        const safe_obj  = b.addObject(fmt.allocPrint(b.allocator, "safe-{}", bench) catch unreachable, path);
+        const fast_obj  = b.addObject(fmt.allocPrint(b.allocator, "fast-{}", bench) catch unreachable, path);
 
         debug_obj.setBuildMode(builtin.Mode.Debug);
         safe_obj .setBuildMode(builtin.Mode.ReleaseSafe);

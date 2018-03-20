@@ -262,11 +262,12 @@ pub fn exportParseBenchmark(comptime file_name: []const u8, comptime fn_prefix: 
         }
     };
 
+    const strong_linkage = @import("builtin").GlobalLinkage.Strong;
     @export(fn_prefix ++ "_parse", Benchmark.parse, strong_linkage);
 }
 
 
-pub fn exporHelpBenchmark(comptime file_name: []const u8, comptime fn_prefix: []const u8) void {
+pub fn exportHelpBenchmark(comptime file_name: []const u8, comptime fn_prefix: []const u8) void {
     const package = @import(file_name);
     const Benchmark = struct {
         const default : ManyFields = undefined;
